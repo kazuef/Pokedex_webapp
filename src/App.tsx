@@ -28,25 +28,22 @@ function App() {
   };
 
 
-
   // 検索バー関係
   // const [searchResults, setSearchResults] = useState<string>('');
-  const [query, setQuery] = useState('');
+  const [query, setQuery] = useState<boolean>(false);
   
   // ポケモン関係
   const initPokemonAllUrl = "https://pokeapi.co/api/v2/pokemon?offset=0&limit=20";
   const [pokemonAllUrl, setPokemonAllUrl] = useState<string>(initPokemonAllUrl);
   const [allPokemons, setAllPokemons] = useState<PokemonData[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  // const [pokemonType, setPokemonType] = useState<string>("");
-  // const [SearchPokemons, setSearchPokemons] = useState<PokemonData[]>([]);
 
-  const getAllPokemons = () => {
+
+  const getAllPokemons = (url = pokemonAllUrl) => {
     setIsLoading(true);
-    fetch(pokemonAllUrl)
+    fetch(url)
       .then(res => res.json())
       .then(data => {
-        console.log(data)
         setPokemonAllUrl(data.next);
         createPokemonObject(data.results);
       })
@@ -55,6 +52,7 @@ function App() {
       })
   }
   
+
   const createPokemonObject = (results: ApiPokemon[]) => {
     results.forEach(pokemon => {
       const pokemonUrl = `https://pokeapi.co/api/v2/pokemon/${pokemon.name}`
@@ -80,6 +78,7 @@ function App() {
     })
   }
 
+
   const translateToJapanese = async (name: string, type: string) => {
     const jpName = await pokemonJson.find(
       (pokemon: PokemonJson) => pokemon.en.toLowerCase() === name
@@ -89,52 +88,28 @@ function App() {
   }
 
 
-  // const filterPokemonType = (data) => {
-  // }
-  
-  // const handleChange = (event: any) => {
-  //   setPokemonType(event.target.value)
-  //   setSearchPokemons(
-  //     allPokemons.filter((pokemon) => pokemon.type.toLowerCase().includes(pokemonType))
-  //   )
-  //   console.log(SearchPokemons)
-  // }
-
-
   useEffect(() => {
     getAllPokemons();
   }, [])
 
-  // useEffect(() => {
-  //   createPokemonObject(results);
-  // }, [allPokemons])
-
-
-
-
-  
 
   const handleSearch = (query: string) => {
     // setSearchResults(query ? `"${query}" の検索結果` : '');
 
     // queryが空であれば通常通り表示
-    if(query === "") {
-      setPokemonAllUrl(initPokemonAllUrl);
-      console.log(pokemonAllUrl);
-      getAllPokemons();
-    } else {
-      const search_result_pokemons = pokemonJson.filter(pokeJson => pokeJson.ja.includes(query))
-      
-      console.log(typeof search_result_pokemons);
-  
+    if(query === "") {     
       setAllPokemons([]);
-      setQuery("");
+      setQuery(false);
+      getAllPokemons(initPokemonAllUrl);
+    } else {
+      setAllPokemons([]);
+      setQuery(true);
+      const search_result_pokemons = pokemonJson.filter(pokeJson => pokeJson.ja.includes(query))
       search_result_pokemons.forEach(pokemon => {
         const pokemonUrl = `https://pokeapi.co/api/v2/pokemon/${pokemon.en.toLowerCase()}`
         fetch(pokemonUrl)
           .then(res => res.json())
           .then(async data => {
-            console.log(data);
             const _image = data.sprites.other["official-artwork"].front_default;
             const _iconImage = data.sprites.other.dream_world.front_default;
             const _type = data.types[0].type.name
@@ -148,13 +123,13 @@ function App() {
               jpName: japanese.name,
               jpType: japanese.type
             }
-  
             setAllPokemons(currentList => [...currentList, newList].sort((a, b) => a.id - b.id));
           })
       })
     }
   };
-    
+  
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50">
       <div className="container mx-auto px-4 py-16">
@@ -162,9 +137,9 @@ function App() {
           <h1 className="text-4xl font-bold text-gray-800 mb-4">
             ポケモン図鑑
           </h1>
-          <p className="text-gray-600">
+          {/* <p className="text-gray-600">
             美しいアニメーションと使いやすいUIを備えた検索バー
-          </p>
+          </p> */}
         </div>
         <div className="mb-8">
           <SearchBar 
@@ -214,14 +189,13 @@ function App() {
               {isLoading ? (
                 <div className="load-more">now loading...</div>
               ) : (
-                <button className="load-more" onClick={getAllPokemons}>
+                <button className="load-more" onClick={() => getAllPokemons(pokemonAllUrl)}>
                   もっとみる！
                 </button>
               )}
             </div>
           )}
         </div>
-
 
       </div>
     </div>
