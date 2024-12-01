@@ -12,7 +12,7 @@ COPY . .
 RUN npm install
 
 # ポートを公開
-EXPOSE 3000
+EXPOSE 5173
 
 # アプリケーションを起動
 CMD ["npm", "run", "dev"]
