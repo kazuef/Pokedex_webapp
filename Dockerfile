@@ -15,4 +15,4 @@ RUN npm install
 EXPOSE 3000
 
 # アプリケーションを起動
-CMD ["npm", "start"]
+CMD ["npm", "run", "dev"]
