@@ -1,5 +1,3 @@
-import React from "react";
-
 type PokemonData = {
     id: number;
     name: string;

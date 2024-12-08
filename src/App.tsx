@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { SearchBar } from './components/SearchBar';
 import PokenmonThumbnails from './components/PokenmonThumbnails';
+import Pagination from './components/Pagination';
 import pokemonJson from "./pokemon.json";
 import pokemonTypeJson from "./pokemonType.json";
 
@@ -37,6 +38,19 @@ function App() {
   const [pokemonAllUrl, setPokemonAllUrl] = useState<string>(initPokemonAllUrl);
   const [allPokemons, setAllPokemons] = useState<PokemonData[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [maxPageNum, setMaxPageNum] = useState<number>(0);
+
+  // ページネーション
+  const [currentPage, setCurrentPage] = useState<number>(0);
+  
+  const createUrl = () => {
+    const itemsPerPage: number = 20;
+    console.log(currentPage);
+    const url: string = `https://pokeapi.co/api/v2/pokemon?offset=${currentPage * itemsPerPage - 20}&limit=${itemsPerPage}`;
+    console.log(url);
+    setAllPokemons([]);
+    getAllPokemons(url);
+  }
 
 
   const getAllPokemons = (url = pokemonAllUrl) => {
@@ -44,7 +58,10 @@ function App() {
     fetch(url)
       .then(res => res.json())
       .then(data => {
-        setPokemonAllUrl(data.next);
+        setMaxPageNum(data.count);
+        console.log(maxPageNum);
+        console.log(currentPage);
+        // setPokemonAllUrl(data.next);
         createPokemonObject(data.results);
       })
       .finally(() => {
@@ -88,11 +105,6 @@ function App() {
   }
 
 
-  useEffect(() => {
-    getAllPokemons();
-  }, [])
-
-
   const handleSearch = (query: string) => {
     // setSearchResults(query ? `"${query}" の検索結果` : '');
 
@@ -128,7 +140,19 @@ function App() {
       })
     }
   };
+
+
+  useEffect(() => {
+    getAllPokemons();
+  }, [])
+
+  useEffect(() => {
+    createUrl();
+  }, [currentPage])
   
+  // useEffect(() => {
+  //   getAllPokemons();
+  // }, [pokemonAllUrl])
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50">
@@ -169,7 +193,7 @@ function App() {
           </form>
         </div> */}
         <div className="pokemon-container">
-          <div className="all-container">
+          <div className="all-container mb-8">
             {allPokemons.map((pokemon: PokemonData, index) => (
               <PokenmonThumbnails
                 id={pokemon.id}
@@ -184,7 +208,7 @@ function App() {
             ))}         
           </div>
 
-          {!query && (
+          {/* {!query && (
             <div>
               {isLoading ? (
                 <div className="load-more">now loading...</div>
@@ -194,9 +218,17 @@ function App() {
                 </button>
               )}
             </div>
-          )}
+          )} */}
+          <div>
+            <Pagination
+              maxPageNum={maxPageNum}
+              currentPage={currentPage}
+              onPageChange={setCurrentPage}
+            />
+          </div>
         </div>
 
+        
       </div>
     </div>
   );
